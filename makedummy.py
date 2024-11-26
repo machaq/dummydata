@@ -10,10 +10,10 @@ import random
 faker = Faker()
 
 # YAMLファイルの読み込み
-def load_models_from_yaml(yaml_file):
+def load_config_and_models(yaml_file):
     with open(yaml_file, 'r') as file:
         data = yaml.safe_load(file)
-    return data['models']
+    return data['config'], data['models']
 
 # フィールドタイプの解析
 def parse_field_type(field_type):
@@ -67,41 +67,45 @@ def create_factory_for_model(model_name, model_class, models):
 
 # メイン処理
 def main():
-    # モデル定義の読み込み
-    models = load_models_from_yaml('models.yml')
+    # YAMLファイルから設定とモデルを読み込み
+    config, models = load_config_and_models('models.yml')
 
     # データクラスの生成
     dataclasses = create_dataclass_from_yaml(models)
 
     # Factoryの生成
-    CompanyFactory = create_factory_for_model("Company", dataclasses["Company"], models)
-    EmployeeFactory = create_factory_for_model("Employee", dataclasses["Employee"], models)
+    ParentFactory = create_factory_for_model("Parent", dataclasses["Parent"], models)
+    ChildFactory = create_factory_for_model("Child", dataclasses["Child"], models)
+
+    # 設定値の取得
+    parent_config = config["Parent"]
+    child_config = config["Child"]
 
     # データ生成
-    companies = []
-    employees = []
+    parents = []
+    children = []
 
-    for _ in range(5):  # 5社生成
-        company = CompanyFactory()
-        companies.append({
-            'id': company.id,
-            'name': company.name,
-            'created_at': company.created_at.strftime('%Y-%m-%d %H:%M:%S')
+    for _ in range(parent_config["rows"]):  # Parentの行数
+        parent = ParentFactory()
+        parents.append({
+            'id': parent.id,
+            'name': parent.name,
+            'created_at': parent.created_at.strftime('%Y-%m-%d %H:%M:%S')
         })
 
-        for _ in range(10):  # 各社に10人の従業員を生成
-            employee = EmployeeFactory(company_id=company.id)
-            employees.append({
-                'id': employee.id,
-                'name': employee.name,
-                'position': employee.position,
-                'hired_at': employee.hired_at.strftime('%Y-%m-%d %H:%M:%S'),
-                'company_id': employee.company_id
+        for _ in range(child_config["rows_per_parent"]):  # 各Parentに紐付くChildの行数
+            child = ChildFactory(parent_id=parent.id)
+            children.append({
+                'id': child.id,
+                'name': child.name,
+                'hobby': child.hobby,
+                'birth_date': child.birth_date.strftime('%Y-%m-%d %H:%M:%S'),
+                'parent_id': child.parent_id
             })
 
     # CSVエクスポート
-    pd.DataFrame(companies).to_csv('companies.csv', index=False)
-    pd.DataFrame(employees).to_csv('employees.csv', index=False)
+    pd.DataFrame(parents).to_csv(parent_config["output_file"], index=False)
+    pd.DataFrame(children).to_csv(child_config["output_file"], index=False)
     print("CSVファイルが作成されました！")
 
 if __name__ == "__main__":
