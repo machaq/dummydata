@@ -1,0 +1,19 @@
+config:
+  Parent:
+    output_file: "parents.csv"  # 出力ファイル名
+    rows: 5                    # 出力行数
+  Child:
+    output_file: "children.csv" # 出力ファイル名
+    rows_per_parent: 10         # 親ごとに出力する子の行数
+
+models:
+  Parent:
+    - id: int
+    - name: str(min=5, max=20)
+    - created_at: timestamp
+  Child:
+    - id: int
+    - name: str(min=3, max=15)
+    - hobby: str(min=5, max=30)
+    - birth_date: timestamp
+    - parent_id: int
