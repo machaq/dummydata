@@ -1,19 +1,22 @@
 config:
   Parent:
-    output_file: "parents.csv"  # 出力ファイル名
-    rows: 5                    # 出力行数
+    rows: 10
+    output_file: "parents.csv"
   Child:
-    output_file: "children.csv" # 出力ファイル名
-    rows_per_parent: 10         # 親ごとに出力する子の行数
+    rows_per_parent: 5
+    output_file: "children.csv"
 
 models:
   Parent:
     - id: int
-    - name: str(min=5, max=20)
+    - name: str(min=8, max=16)
+    - rating: float(min=0.0, max=5.0)
+    - is_active: boolean(true_ratio=0.8)
     - created_at: timestamp
+
   Child:
-    - id: int
-    - name: str(min=3, max=15)
-    - hobby: str(min=5, max=30)
+    - id: count
+    - name: str(min=6, max=12)
+    - hobby: str(min=5, max=10)
     - birth_date: timestamp
     - parent_id: int
