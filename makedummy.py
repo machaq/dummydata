@@ -17,6 +17,9 @@ def load_config_and_models(yaml_file):
 
 # フィールドタイプの解析
 def parse_field_type(field_type):
+    """
+    str(min=5, max=20) のような制約を解析して型と制約を返す
+    """
     if 'str' in field_type:
         if '(' in field_type:
             params = field_type.split('(')[1].rstrip(')')
@@ -27,21 +30,36 @@ def parse_field_type(field_type):
         return 'timestamp', {}
     return field_type, {}
 
+
 # データモデルの動的生成
 def create_dataclass_from_yaml(models):
     dataclasses = {}
     for model_name, fields in models.items():
         processed_fields = []
-        for field in fields:
-            name, type_def = field.split(': ')
-            field_type, constraints = parse_field_type(type_def)
-            if field_type == 'str':
-                processed_fields.append((name, str))
-            elif field_type == 'timestamp':
-                processed_fields.append((name, datetime))
-            else:
-                processed_fields.append((name, eval(field_type)))
-        dataclasses[model_name] = make_dataclass(model_name, processed_fields)
+        for name, type_def in fields.items():
+            try:
+                # 型と制約をパース
+                field_type, constraints = parse_field_type(type_def)
+
+                # 型マッピング
+                if field_type == 'str':
+                    processed_fields.append((name, str))
+                elif field_type == 'timestamp':
+                    processed_fields.append((name, datetime))
+                else:
+                    processed_fields.append((name, eval(field_type)))  # int, float, etc.
+
+            except Exception as e:
+                print(f"Error processing field '{name}' in model '{model_name}': {e}")
+                raise e
+
+        # dataclass の作成
+        try:
+            dataclasses[model_name] = make_dataclass(model_name, processed_fields)
+        except Exception as e:
+            print(f"Error creating dataclass for model '{model_name}': {e}")
+            raise e
+
     return dataclasses
 
 # Factoryの動的生成
