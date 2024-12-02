@@ -9,14 +9,17 @@ config:
 models:
   Parent:
     - id: int
+    - code: str_seq(prefix="PARENT_", start=100)
     - name: str(min=8, max=16)
     - rating: float(min=0.0, max=5.0)
     - is_active: boolean(true_ratio=0.8)
     - created_at: timestamp
 
   Child:
-    - id: count
+    - id: int
+    - code: str_seq(prefix="CHILD_", start=200)
     - name: str(min=6, max=12)
     - hobby: str(min=5, max=10)
     - birth_date: timestamp
     - parent_id: int
+    - rating: float(min=0.0, max=5.0)  # 親のフィールドと同じ名前
